@@ -120,6 +120,8 @@ class Sliding(Base):
 
         if type(kernel_size) == int:
             self.kernel_size = [kernel_size] * conv_dims
+        elif len(kernel_size) == 1:
+            self.kernel_size = [kernel_size[0]] * conv_dims
         else:
             assert len(kernel_size)==conv_dims
             self.kernel_size = [i for i in kernel_size]
