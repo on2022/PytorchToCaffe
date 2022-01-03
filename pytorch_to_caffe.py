@@ -484,6 +484,33 @@ def _div(raw,inputs, inputs2):
 
 
 # ----- for Variable operations --------
+def _flatten(raw , input, * args):
+    x = raw(input, *args)
+    if not NET_INITTED:
+        return x
+    layer_name=log.add_layer(name='flatten')
+    top_blobs=log.add_blobs([x],name='flatten_blob')
+    layer=caffe_net.Layer_param(name=layer_name,type='Reshape',
+                                bottom=[log.blobs(input)],top=top_blobs)
+    start_dim = args[0]
+    end_dim = len(x.shape)
+    if len(args) > 1:
+        end_dim = args[1]
+    dims = []
+    for i in range(start_dim):
+        dims.append(x.shape[i])
+    cum = 1
+    for i in range(start_dim, end_dim):
+        cum = cum * x.shape[i]
+        dims.append(cum)
+    if end_dim != len(x.shape):
+        cum = 1
+    for i in range(end_dim, len(x.shape)):
+        cum = cum * x.shape[i]
+        dims.append(cum)
+    layer.param.reshape_param.shape.CopyFrom(caffe_net.pb.BlobShape(dim=dims))
+    log.cnet.add_layer(layer)
+    return x
 
 def _view(input, *args):
     x=raw_view(input, *args)
@@ -718,6 +745,7 @@ torch.split=Rp(torch.split,_split)
 torch.max=Rp(torch.max,_max)
 torch.cat=Rp(torch.cat,_cat)
 torch.div=Rp(torch.div,_div)
+torch.flatten = Rp(torch.flatten,_flatten)
 
 # TODO: other types of the view function
 try:
