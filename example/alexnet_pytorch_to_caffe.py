@@ -1,5 +1,7 @@
 import sys
 sys.path.insert(0,'.')
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 import torch
 from torch.autograd import Variable
 from torchvision.models.alexnet import alexnet
