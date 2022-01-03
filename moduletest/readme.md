@@ -10,4 +10,6 @@ python moduletest\test_all.py
 # support list
 - [x] nn.ReLU
 - [x] F.sigmoid
-- [ ] nn.Sigmoid 
+- [x] torch.flatten
+
+
