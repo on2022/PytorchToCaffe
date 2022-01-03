@@ -271,6 +271,8 @@ def _threshold(raw,input, threshold, value, inplace=False):
 def _relu(raw, input, inplace=False):
     # for threshold or prelu
     x = raw(input, False)
+    if not NET_INITTED:
+        return x
     name = log.add_layer(name='relu')
     log.add_blobs([x], name='relu_blob')
     layer = caffe_net.Layer_param(name=name, type='ReLU',
@@ -422,10 +424,37 @@ def _sigmoid(raw, input):
     # 
     # ​	
     x = raw(input)
+    if not NET_INITTED:
+        return x
     name = log.add_layer(name='sigmoid')
     log.add_blobs([x], name='sigmoid_blob')
     layer = caffe_net.Layer_param(name=name, type='Sigmoid',
                                   bottom=[log.blobs(input)], top=[log.blobs(x)])
+    log.cnet.add_layer(layer)
+    return x
+
+#silu layer
+def _silu(raw, input, inplace=False):
+    # Applies the element-wise function:
+    # 
+    # SiLU(x)= x * 1/(1+exp(−x))
+    # 
+    # ​	
+    x = raw(input, False)
+    if not NET_INITTED:
+        return x
+    name = log.add_layer(name='sigmoid')
+    log.add_blobs([x], name='sigmoid_blob')
+    layer = caffe_net.Layer_param(name=name, type='Sigmoid',
+                                  bottom=[log.blobs(input)], top=[log.blobs(x)])
+    log.cnet.add_layer(layer)
+    y = log.blobs(x)
+
+    layer_name = log.add_layer(name='mul')
+    top_blobs = log.add_blobs([x], name='mul_blob')
+    layer = caffe_net.Layer_param(name=layer_name, type='Eltwise',
+                                  bottom=[log.blobs(input), y], top=top_blobs)
+    layer.param.eltwise_param.operation = 0  # product is 1
     log.cnet.add_layer(layer)
     return x
 
@@ -736,6 +765,7 @@ F.softmax=Rp(F.softmax,_softmax)
 F.conv_transpose2d=Rp(F.conv_transpose2d,_conv_transpose2d)
 F.interpolate = Rp(F.interpolate,_interpolate)
 F.sigmoid = Rp(F.sigmoid,_sigmoid)
+F.silu = Rp(F.silu,_silu)
 F.tanh = Rp(F.tanh,_tanh)
 F.tanh = Rp(F.tanh,_tanh)
 F.hardtanh = Rp(F.hardtanh,_hardtanh)
