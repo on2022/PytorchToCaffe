@@ -55,15 +55,15 @@ def testsigmoid():
     # save torch model
     net = sigmoidNet()
     torch.save(net, os.path.join(outdir, '{}.pth'.format(name)))
-
-    # torch outputs # 不能先转，再读取模型forward，有bug
-    torchtime, torchoutput, torchparam = forward_pytorch(os.path.join(outdir, '{}.pth'.format(name)), data)
     
     # transform caffe model
     input=Variable(torch.ones(inputshape))
     pytorch_to_caffe.trans_net(net,input,name)
     pytorch_to_caffe.save_prototxt(os.path.join(outdir, '{}.prototxt'.format(name)))
     pytorch_to_caffe.save_caffemodel(os.path.join(outdir, '{}.caffemodel'.format(name)))
+
+    # torch outputs
+    torchtime, torchoutput, torchparam = forward_pytorch(os.path.join(outdir, '{}.pth'.format(name)), data)
 
     # caffe outputs
     caffetime, caffeblobs, caffeparam = forward_caffe(os.path.join(outdir, '{}.prototxt'.format(name)), 
